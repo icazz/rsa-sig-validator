@@ -108,7 +108,3 @@ npm run lint
 - React 19 + TypeScript + Vite
 - Tailwind CSS v4 + Lucide Icons
 - Web Crypto API (RSA-PSS dan SHA-256), tanpa backend
-
-## Tampilan Antarmuka
-
-Antarmuka menggunakan tema monokrom hitam putih dengan latar putih, teks hitam, dan garis pembatas abu-abu tipis. Tombol utama menggunakan latar hitam solid. Status VALID ditampilkan sebagai banner hitam, sedangkan status INVALID ditampilkan sebagai banner putih dengan garis tepi hitam yang tebal, sehingga keduanya tetap mudah dibedakan tanpa mengandalkan warna.
