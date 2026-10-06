@@ -6,7 +6,7 @@ import { ShieldCheck, ShieldX } from 'lucide-react';
 
 interface Props {
   computedHash: string;
-  /** Signing-time hash — from JSON bundle or Tab 2 handoff. NOT decrypted from sig (impossible with RSA-PSS). */
+  /** Signing-time hash — from JSON bundle or Tab 2 handoff. Bukan hasil dekripsi signature. */
   originalHash: string;
   /** Cryptographic verify() result (may be null if not yet verified) */
   isValid: boolean | null;

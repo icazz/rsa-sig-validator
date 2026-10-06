@@ -13,11 +13,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import type { KeySize } from '../lib/rsaCrypto';
-import {
-  generateRSAKeyPair,
-  exportPrivateKeyPEM,
-  exportPublicKeyPEM,
-} from '../lib/rsaCrypto';
+import { generateKeyPairPEM } from '../lib/cryptoService';
 import { downloadText, copyTextToClipboard } from '../lib/fileHelpers';
 
 interface Props {
@@ -39,15 +35,14 @@ export default function KeyGenerator({
   async function handleGenerate() {
     setGenerating(true);
     try {
-      const pair = await generateRSAKeyPair(keySize);
-      const [priv, pub] = await Promise.all([
-        exportPrivateKeyPEM(pair.privateKey),
-        exportPublicKeyPEM(pair.publicKey),
-      ]);
+      const { privateKeyPEM: priv, publicKeyPEM: pub, engine } = await generateKeyPairPEM(keySize);
       onKeysGenerated(priv, pub);
-      addToast(`RSA-${keySize} key pair generated successfully!`, 'success');
+      addToast(
+        `RSA-${keySize} key pair generated successfully! (${engine === 'backend' ? 'via Python backend' : 'via local engine'})`,
+        'success',
+      );
     } catch (err) {
-      addToast('Key generation failed: ' + String(err), 'error');
+      addToast('Key generation failed: ' + (err instanceof Error ? err.message : String(err)), 'error');
     } finally {
       setGenerating(false);
     }
@@ -266,9 +261,9 @@ export default function KeyGenerator({
         }}
       >
         {[
-          { label: 'Algorithm', value: 'RSA-PSS', icon: '01' },
-          { label: 'Hash Function', value: 'SHA-256', icon: '02' },
-          { label: 'Padding Scheme', value: 'PSS + Salt=32', icon: '03' },
+          { label: 'Algorithm', value: 'RSA Manual (BigInt)', icon: '01' },
+          { label: 'Hash Function', value: 'SHA-256 Manual', icon: '02' },
+          { label: 'Padding Scheme', value: 'PKCS#1 v1.5', icon: '03' },
         ].map((item) => (
           <div
             key={item.label}

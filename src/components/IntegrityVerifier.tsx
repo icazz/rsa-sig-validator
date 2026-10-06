@@ -1,7 +1,7 @@
 /**
  * IntegrityVerifier.tsx — Tab 3: Verify Document Integrity
  * Compares signing-time hash (bundle / Tab 2) vs freshly computed hash,
- * and runs RSA-PSS cryptographic verification via Web Crypto.
+ * and runs manual RSA verification (modular exponentiation + PKCS#1 v1.5 check).
  */
 import { useState, useRef, useEffect } from 'react';
 import {
@@ -16,11 +16,7 @@ import {
   FileText,
   Copy,
 } from 'lucide-react';
-import {
-  sha256Hex,
-  verifySignature,
-  importPublicKeyFromPEM,
-} from '../lib/rsaCrypto';
+import { computeHash, verifyDocument } from '../lib/cryptoService';
 import {
   readFileAsArrayBuffer,
   readFileAsText,
@@ -94,7 +90,7 @@ export default function IntegrityVerifier({
     const buf = await readFileAsArrayBuffer(selected);
     setFileBuffer(buf);
     setActiveBuffer(buf);
-    const h = await sha256Hex(buf);
+    const { hash: h } = await computeHash(buf, selected.name);
     setComputedHash(h);
     // NOTE: do NOT overwrite originalHash here — it must stay as the
     // signing-time reference so tampering shows a mismatch.
@@ -133,16 +129,17 @@ export default function IntegrityVerifier({
     }
     setVerifying(true);
     try {
-      const pubKey = await importPublicKeyFromPEM(pubKeyPEM);
-      const result = await verifySignature(pubKey, signature.trim(), activeBuffer);
-      setVerifyResult(result);
-      if (result) {
-        addToast('Signature VALID — Document is authentic!', 'success');
+      const res = await verifyDocument(pubKeyPEM, signature.trim(), activeBuffer, file?.name ?? prefillFileName ?? 'upload');
+      setComputedHash(res.computedHash);
+      setVerifyResult(res.valid);
+      const via = res.engine === 'backend' ? 'via Python backend' : 'via local engine';
+      if (res.valid) {
+        addToast(`Signature VALID — Document is authentic! (${via})`, 'success');
       } else {
-        addToast('Signature INVALID — Integrity violation detected!', 'error');
+        addToast(`Signature INVALID — Integrity violation detected! (${via})`, 'error');
       }
     } catch (err) {
-      addToast('Verification error: ' + String(err), 'error');
+      addToast('Verification error: ' + (err instanceof Error ? err.message : String(err)), 'error');
       setVerifyResult(false);
     } finally {
       setVerifying(false);
@@ -158,11 +155,11 @@ export default function IntegrityVerifier({
   function handleResetTamper() {
     if (fileBuffer) {
       setActiveBuffer(fileBuffer.slice(0));
-      sha256Hex(fileBuffer).then(setComputedHash);
+      computeHash(fileBuffer, file?.name ?? 'upload').then(({ hash }) => setComputedHash(hash));
       setVerifyResult(null);
     } else if (prefillBuffer) {
       setActiveBuffer(prefillBuffer.slice(0));
-      sha256Hex(prefillBuffer).then(setComputedHash);
+      computeHash(prefillBuffer, prefillFileName ?? 'upload').then(({ hash }) => setComputedHash(hash));
       setVerifyResult(null);
     }
   }

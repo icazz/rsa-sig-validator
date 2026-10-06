@@ -4,7 +4,8 @@
  */
 import { useState, useEffect, useMemo } from 'react';
 import { Zap, RefreshCw, AlertTriangle } from 'lucide-react';
-import { sha256Hex, tamperBuffer, arrayBufferToHex } from '../lib/rsaCrypto';
+import { tamperBuffer } from '../lib/rsaCrypto';
+import { computeHash } from '../lib/cryptoService';
 
 interface Props {
   fileBuffer: ArrayBuffer | null;
@@ -72,9 +73,7 @@ export default function TamperSimulator({
     try {
       const pos = Math.max(0, Math.floor(new Uint8Array(fileBuffer).length * 0.2));
       const tampered = tamperBuffer(fileBuffer);
-      const h = await sha256Hex(tampered);
-      // Safety: extremely tiny files could theoretically hash-collide — log raw bytes
-      void arrayBufferToHex;
+      const { hash: h } = await computeHash(tampered);
       setTamperedHash(h);
       setTamperPos(pos);
       setIsTampered(true);

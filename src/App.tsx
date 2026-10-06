@@ -8,6 +8,7 @@ import KeyGenerator from './components/KeyGenerator';
 import DocumentSigner from './components/DocumentSigner';
 import IntegrityVerifier from './components/IntegrityVerifier';
 import { useToast } from './lib/useToast';
+import { detectEngine, type Engine } from './lib/cryptoService';
 import './index.css';
 
 type Tab = 'keys' | 'sign' | 'verify';
@@ -41,6 +42,13 @@ export default function App() {
   const [signedBuffer, setSignedBuffer] = useState<ArrayBuffer | undefined>(undefined);
 
   const { toasts, addToast } = useToast();
+
+  // Mesin kriptografi aktif: backend Python bila tersedia, bila tidak mesin lokal.
+  const [engine, setEngine] = useState<Engine | null>(null);
+
+  useEffect(() => {
+    detectEngine().then(setEngine);
+  }, []);
 
   // Persist keys on change
   useEffect(() => {
@@ -106,7 +114,13 @@ export default function App() {
               <div className="logo-sub">RSA Digital Signature Suite</div>
             </div>
           </div>
-          <span className="header-badge">RSA-PSS · SHA-256 · Web Crypto</span>
+          <span className="header-badge" title="Mesin kriptografi yang sedang dipakai">
+            {engine === null
+              ? 'Checking engine…'
+              : engine === 'backend'
+                ? 'Python Backend · Manual RSA'
+                : 'Local Engine · Manual RSA'}
+          </span>
         </div>
       </header>
 
@@ -120,7 +134,7 @@ export default function App() {
             and simulate file tampering — all entirely in your browser. No data leaves your device.
           </p>
           <div className="hero-chips">
-            {['2048 / 4096-bit RSA', 'SHA-256 Hashing', 'RSA-PSS Padding', 'Web Crypto API', 'Zero Server', 'Avalanche Effect Demo'].map((c) => (
+            {['2048 / 4096-bit RSA', 'SHA-256 Manual', 'PKCS#1 v1.5 Padding', 'Kode RSA Murni', 'Zero Server', 'Avalanche Effect Demo'].map((c) => (
               <span key={c} className="hero-chip">{c}</span>
             ))}
           </div>
@@ -263,8 +277,9 @@ export default function App() {
             </div>
             <div>
               <strong style={{ color: 'var(--text-primary)' }}>2. Sign —</strong> the hash is
-              signed with the sender&apos;s <em>private key</em> using RSA-PSS padding
-              (salt = 32 bytes), producing a Base64 signature.
+              signed with the sender&apos;s <em>private key</em> using manual BigInt
+              modular exponentiation (s = m^d mod n, PKCS#1 v1.5 padding),
+              producing a Base64 signature.
             </div>
             <div>
               <strong style={{ color: 'var(--text-primary)' }}>3. Verify —</strong> the receiver
@@ -274,11 +289,12 @@ export default function App() {
           </div>
           <div className="divider" />
           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>
-            Note: with RSA-PSS the original hash <em>cannot</em> be decrypted back out of the
-            signature (unlike textbook PKCS#1 v1.5). That&apos;s why this app compares the{' '}
+            Note: the original hash <em>cannot</em> be decrypted back out of the
+            signature. That&apos;s why this app compares the{' '}
             <strong>signing-time hash</strong> (stored in the bundle JSON) against the{' '}
             <strong>freshly computed hash</strong> — while cryptographic validity itself is proven
-            by Web Crypto&apos;s <code>verify()</code> call.
+            by the manual <code>verifySignature()</code> routine in <code>rsaCrypto.ts</code>
+            (modular exponentiation + PKCS#1 v1.5 unpadding, all hand-written BigInt code).
           </div>
         </section>
       </main>
@@ -286,7 +302,7 @@ export default function App() {
       {/* ── Footer ── */}
       <footer className="app-footer">
         <span>
-          Built with Web Crypto API · RSA-PSS · SHA-256 · All operations run client-side · No data is transmitted.
+          Built with hand-written RSA (BigInt) · PKCS#1 v1.5 · SHA-256 manual · No crypto library · All operations run client-side.
         </span>
       </footer>
 

@@ -2,7 +2,7 @@
 
 Aplikasi web satu halaman untuk mendemonstrasikan cara kerja tanda tangan digital RSA pada dokumen digital. Pengguna dapat membangkitkan pasangan kunci RSA, menandatangani berkas hingga menghasilkan signature, kemudian memverifikasi apakah berkas tersebut masih asli atau telah mengalami perubahan. Tersedia pula fitur untuk memodifikasi berkas secara sengaja agar dampak perubahan satu byte dapat diamati secara langsung.
 
-Seluruh proses kriptografi berjalan di sisi klien menggunakan Web Crypto API bawaan peramban. Aplikasi ini tidak menggunakan server dan tidak mengirim data apa pun ke pihak lain.
+Seluruh komputasi kriptografi dikerjakan oleh **backend Python** yang implementasinya ditulis manual dari nol (aritmetika RSA dengan operasi dasar Python dan SHA-256 yang ditulis sendiri, tanpa pustaka `cryptography` maupun `PyCryptodome`). Web hanya berperan sebagai antarmuka: mengirim berkas dan kunci ke backend, lalu menampilkan hasilnya. Apabila backend tidak berjalan, aplikasi otomatis beralih ke mesin lokal (`src/lib/rsaCrypto.ts`, implementasi manual yang sama dalam TypeScript) sehingga tetap berfungsi. Kedua mesin saling interoperabel karena memakai format yang identik.
 
 Proyek ini disusun untuk memenuhi tugas mata kuliah Kriptografi mengenai fungsi hash, tanda tangan digital, dan pemeriksaan integritas data.
 
@@ -19,13 +19,15 @@ Proyek ini disusun untuk memenuhi tugas mata kuliah Kriptografi mengenai fungsi 
 | Aspek            | Keterangan                                            |
 |------------------|-------------------------------------------------------|
 | Algoritma        | RSA (2048-bit sebagai bawaan, tersedia opsi 4096-bit) |
-| Fungsi hash      | SHA-256 (keluaran berupa 64 karakter hex)             |
-| Skema padding    | RSA-PSS (salt sepanjang 32 bytes)                     |
-| Bentuk signature | String Base64                                         |
-| Format kunci     | PEM (kunci publik dan kunci privat)                   |
-| Engine           | Web Crypto API bawaan peramban, tanpa pustaka tambahan |
+| Fungsi hash      | SHA-256 manual, ditulis dari nol (keluaran 64 karakter hex) |
+| Skema padding    | PKCS#1 v1.5 dengan DigestInfo SHA-256                   |
+| Aritmetika       | Manual: Miller-Rabin, perpangkatan modular, invers modular, CRT |
+| Bentuk signature | String Base64                                           |
+| Format kunci     | PEM standar (public key SPKI, private key PKCS#8, dapat dibuka OpenSSL) |
+| Engine utama     | `backend/rsa_manual.py` (Python, tanpa pustaka kripto)  |
+| Engine cadangan  | `src/lib/rsaCrypto.ts` (TypeScript, implementasi manual yang sama) |
 
-Perlu dicatat bahwa pada RSA-PSS, nilai hash asli tidak dapat dikembalikan dari dalam signature. Oleh karena itu, aplikasi ini membandingkan hash pada saat penandatanganan (yang tersimpan di berkas bundle JSON atau diteruskan dari Tab 2) dengan hash berkas yang dihitung ulang pada saat verifikasi. Keabsahan kriptografis tetap dibuktikan melalui fungsi verify milik Web Crypto.
+Aplikasi ini membandingkan hash pada saat penandatanganan (yang tersimpan di berkas bundle JSON atau diteruskan dari Tab 2) dengan hash berkas yang dihitung ulang pada saat verifikasi. Keabsahan kriptografis dibuktikan melalui operasi RSA penuh: eksponensiasi modular dengan kunci publik beserta pemeriksaan struktur padding PKCS#1 v1.5, seluruhnya oleh fungsi `verifySignature` yang ditulis manual.
 
 ## Cara Penggunaan Aplikasi
 
@@ -75,25 +77,42 @@ src/
     TamperSimulator.tsx    # Fitur modifikasi berkas dan demonstrasi Avalanche Effect
     HashComparison.tsx     # Tabel perbandingan hash
   lib/
-    rsaCrypto.ts           # Fungsi inti: pembangkitan kunci, hash, sign, verify, bundle, tamper
+    rsaCrypto.ts           # Mesin lokal: pembangkitan kunci, hash, sign, verify, bundle, tamper (manual)
+    apiClient.ts           # Klien HTTP menuju backend Python
+    cryptoService.ts       # Penentu mesin aktif (backend bila tersedia, bila tidak mesin lokal)
     fileHelpers.ts         # Pembacaan berkas, unduhan, parsing bundle, salin teks
     useToast.ts            # Notifikasi kecil di sudut kanan bawah
   App.tsx                  # Kerangka tiga tab dan state bersama antar tab
   main.tsx
+backend/
+  rsa_manual.py            # Implementasi RSA manual murni (prima, SHA-256, PKCS#1 v1.5, DER/PEM)
+  app.py                   # API FastAPI: /health, /generate, /hash, /sign, /verify
+  requirements.txt         # Dependensi HTTP server (bukan dependensi kripto)
+  test_manual.py           # Uji mandiri: vektor hash, roundtrip, tamper
+  test_http.py             # Uji endpoint HTTP (memerlukan server berjalan)
 ```
 
 ## Cara Menjalankan
 
-Diperlukan Node.js versi 18 atau lebih baru serta peramban modern seperti Chrome, Edge, atau Firefox.
+Diperlukan Node.js versi 18 atau lebih baru, Python 3.10 atau lebih baru, serta peramban modern seperti Chrome, Edge, atau Firefox.
 
 ```powershell
-# pemasangan dependensi (cukup dilakukan sekali)
-npm install
+# --- Terminal 1: backend Python ---
+cd backend
+pip install -r requirements.txt
+uvicorn app:app --host 127.0.0.1 --port 8000
 
-# menjalankan mode development
+# --- Terminal 2: frontend web ---
+npm install   # cukup dilakukan sekali
 npm run dev
 # buka http://localhost:5173
+```
 
+Indikator mesin kriptografi yang sedang dipakai tampil pada badge di kanan atas halaman: "Python Backend" apabila backend terhubung, atau "Local Engine" apabila berjalan dengan mesin lokal. Alamat backend dapat diubah melalui variabel `VITE_API_URL` (bawaan: `http://localhost:8000`, lihat `.env.example`).
+
+Perintah tambahan:
+
+```powershell
 # membangun versi produksi
 npm run build
 npm run preview
@@ -101,10 +120,16 @@ npm run preview
 
 # memeriksa lint
 npm run lint
+
+# menguji backend (dari folder utama)
+python backend/test_manual.py
+# uji endpoint HTTP (server harus berjalan dahulu)
+python backend/test_http.py
 ```
 
 ## Tech Stack
 
-- React 19 + TypeScript + Vite
+- React 19 + TypeScript + Vite (antarmuka)
 - Tailwind CSS v4 + Lucide Icons
-- Web Crypto API (RSA-PSS dan SHA-256), tanpa backend
+- Python + FastAPI (API backend; hanya lapisan HTTP, bukan kriptografi)
+- Kriptografi manual dari nol di kedua sisi (Python dan TypeScript): prima Miller-Rabin, SHA-256, PKCS#1 v1.5, DER/PEM — tanpa pustaka kripto

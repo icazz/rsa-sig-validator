@@ -16,12 +16,8 @@ import {
   FileText,
   ArrowRight,
 } from 'lucide-react';
-import {
-  sha256Hex,
-  signData,
-  importPrivateKeyFromPEM,
-  createBundle,
-} from '../lib/rsaCrypto';
+import { createBundle } from '../lib/rsaCrypto';
+import { computeHash, signDocument } from '../lib/cryptoService';
 import {
   readFileAsArrayBuffer,
   readFileAsText,
@@ -66,8 +62,8 @@ export default function DocumentSigner({ privateKeyPEM, addToast, onSigned, onGo
     setSignature('');
     const buf = await readFileAsArrayBuffer(selected);
     setFileBuffer(buf);
-    // Compute hash immediately
-    const h = await sha256Hex(buf);
+    // Compute hash immediately (backend Python bila tersedia)
+    const { hash: h } = await computeHash(buf, selected.name);
     setHash(h);
   }
 
@@ -78,13 +74,16 @@ export default function DocumentSigner({ privateKeyPEM, addToast, onSigned, onGo
     }
     setSigning(true);
     try {
-      const privKey = await importPrivateKeyFromPEM(privKeyPEM);
-      const sig = await signData(privKey, fileBuffer);
+      const { signature: sig, hash: freshHash, engine } = await signDocument(privKeyPEM, fileBuffer, file!.name);
+      setHash(freshHash);
       setSignature(sig);
-      onSigned?.(hash, sig, file!.name, fileBuffer);
-      addToast('Document signed successfully!', 'success');
+      onSigned?.(freshHash, sig, file!.name, fileBuffer);
+      addToast(
+        `Document signed successfully! (${engine === 'backend' ? 'via Python backend' : 'via local engine'})`,
+        'success',
+      );
     } catch (err) {
-      addToast('Signing failed: ' + String(err), 'error');
+      addToast('Signing failed: ' + (err instanceof Error ? err.message : String(err)), 'error');
     } finally {
       setSigning(false);
     }
@@ -268,7 +267,7 @@ export default function DocumentSigner({ privateKeyPEM, addToast, onSigned, onGo
         <div className="section-card" style={{ border: '1px solid #000' }}>
           <div className="section-title" style={{ color: '#000' }}>
             <PenLine size={14} />
-            RSA-PSS Digital Signature (Base64)
+            RSA Digital Signature (Base64, PKCS#1 v1.5)
           </div>
           <div className="sig-display" id="signature-output">
             {signature}
