@@ -1,10 +1,10 @@
 # RSA Digital Signature dan Data Integrity Verifier (E-Sign Simulator)
 
-Aplikasi web satu halaman untuk mencoba langsung cara kerja tanda tangan digital RSA pada dokumen. Kamu bisa bikin pasangan kunci RSA, menandatangani file sampai keluar signature-nya, lalu memverifikasi apakah file itu masih asli atau sudah diubah. Ada juga fitur untuk merusak file secara sengaja biar kelihatan jelas apa yang terjadi kalau satu byte saja berubah.
+Aplikasi web satu halaman untuk mendemonstrasikan cara kerja tanda tangan digital RSA pada dokumen digital. Pengguna dapat membangkitkan pasangan kunci RSA, menandatangani berkas hingga menghasilkan signature, kemudian memverifikasi apakah berkas tersebut masih asli atau telah mengalami perubahan. Tersedia pula fitur untuk memodifikasi berkas secara sengaja agar dampak perubahan satu byte dapat diamati secara langsung.
 
-Semua proses jalan murni di browser pakai Web Crypto API. Tidak ada server, tidak ada data yang dikirim ke mana-mana.
+Seluruh proses kriptografi berjalan di sisi klien menggunakan Web Crypto API bawaan peramban. Aplikasi ini tidak menggunakan server dan tidak mengirim data apa pun ke pihak lain.
 
-Project ini dibuat untuk memenuhi tugas mata kuliah Kriptografi tentang hash, digital signature, dan pengecekan integritas data.
+Proyek ini disusun untuk memenuhi tugas mata kuliah Kriptografi mengenai fungsi hash, tanda tangan digital, dan pemeriksaan integritas data.
 
 ## Anggota Kelompok
 
@@ -16,90 +16,90 @@ Project ini dibuat untuk memenuhi tugas mata kuliah Kriptografi tentang hash, di
 
 ## Spesifikasi Kriptografi
 
-| Aspek            | Keterangan                                              |
-|------------------|---------------------------------------------------------|
-| Algoritma        | RSA (2048-bit bawaan, ada opsi 4096-bit)                |
-| Fungsi hash      | SHA-256 (hasilnya 64 karakter hex)                      |
-| Skema padding    | RSA-PSS (salt 32 bytes)                                 |
-| Bentuk signature | String Base64                                           |
-| Format kunci     | PEM (public key dan private key)                        |
-| Engine           | Web Crypto API bawaan browser, tanpa library tambahan   |
+| Aspek            | Keterangan                                            |
+|------------------|-------------------------------------------------------|
+| Algoritma        | RSA (2048-bit sebagai bawaan, tersedia opsi 4096-bit) |
+| Fungsi hash      | SHA-256 (keluaran berupa 64 karakter hex)             |
+| Skema padding    | RSA-PSS (salt sepanjang 32 bytes)                     |
+| Bentuk signature | String Base64                                         |
+| Format kunci     | PEM (kunci publik dan kunci privat)                   |
+| Engine           | Web Crypto API bawaan peramban, tanpa pustaka tambahan |
 
-Satu hal yang perlu dipahami: di RSA-PSS, hash asli tidak bisa dibalikkan lagi dari dalam signature. Jadi aplikasi ini membandingkan hash waktu penandatanganan (yang tersimpan di file bundle JSON atau dikirim dari Tab 2) dengan hash file yang dihitung ulang sekarang. Urusan sah atau tidaknya signature tetap dibuktikan lewat fungsi verify milik Web Crypto.
+Perlu dicatat bahwa pada RSA-PSS, nilai hash asli tidak dapat dikembalikan dari dalam signature. Oleh karena itu, aplikasi ini membandingkan hash pada saat penandatanganan (yang tersimpan di berkas bundle JSON atau diteruskan dari Tab 2) dengan hash berkas yang dihitung ulang pada saat verifikasi. Keabsahan kriptografis tetap dibuktikan melalui fungsi verify milik Web Crypto.
 
-## Cara Pakai Aplikasinya
+## Cara Penggunaan Aplikasi
 
-Aplikasi dibagi jadi 3 tab yang urutannya memang dibuat mengalir dari kiri ke kanan.
+Aplikasi terdiri atas tiga tab yang dirancang untuk digunakan secara berurutan dari kiri ke kanan.
 
 ### Tab 1 - Key Management
 
-Di sini kamu bikin kuncinya dulu. Pilih ukuran kunci 2048 atau 4096, lalu tekan Generate. Nanti muncul dua kartu: private key dan public key dalam format PEM. Keduanya bisa di-copy atau di-download sebagai file .pem.
+Pada tab ini pengguna membangkitkan pasangan kunci. Pilih ukuran kunci 2048-bit atau 4096-bit, kemudian tekan tombol Generate. Setelah itu akan ditampilkan dua kartu, yaitu private key dan public key dalam format PEM. Keduanya dapat disalin ke clipboard atau diunduh sebagai berkas .pem.
 
-Private key itu rahasia, jangan disebar. Public key boleh dibagikan karena dipakai orang lain untuk memeriksa tanda tanganmu.
+Private key bersifat rahasia dan tidak boleh disebarluaskan. Public key boleh dibagikan karena digunakan oleh pihak lain untuk memeriksa keaslian tanda tangan.
 
-Kunci yang sudah dibuat otomatis tersimpan di browser (localStorage), jadi aman kalau halaman di-refresh. Kalau mau hapus, tinggal tekan Clear saved keys.
+Kunci yang telah dibangkitkan tersimpan otomatis di peramban (localStorage) sehingga tidak hilang ketika halaman dimuat ulang. Kunci tersebut juga otomatis terbawa ke Tab 2 dan Tab 3. Untuk menghapusnya, gunakan tombol Clear saved keys.
 
-### Tab 2 - Sign Document (sisi pengirim)
+### Tab 2 - Sign Document (Sisi Pengirim)
 
-Di sini kamu menandatangani dokumen. Caranya: upload file apa saja (PDF, TXT, gambar, JSON, semuanya bisa), pastikan kolom private key sudah terisi (biasanya otomatis keisi dari Tab 1), lalu tekan Sign Document.
+Pada tab ini pengguna menandatangani dokumen. Unggah berkas dalam format apa pun (PDF, TXT, gambar, JSON, dan lainnya), pastikan kolom private key telah terisi (umumnya terisi otomatis dari Tab 1), kemudian tekan tombol Sign Document.
 
-Begitu file dipilih, hash SHA-256-nya langsung dihitung dan ditampilkan. Setelah di-sign, signature Base64-nya muncul dan bisa di-copy, di-download sebagai signature.sig, atau diekspor jadi satu file bundle JSON berisi nama file, hash, signature, dan waktu penandatanganan.
+Segera setelah berkas dipilih, nilai hash SHA-256 dari dokumen akan dihitung dan ditampilkan. Setelah proses penandatanganan selesai, signature dalam bentuk Base64 akan muncul dan dapat disalin, diunduh sebagai signature.sig, atau diekspor menjadi satu berkas bundle JSON yang memuat nama berkas, hash, signature, dan waktu penandatanganan.
 
-Kalau sudah selesai, tekan Verify Now untuk langsung loncat ke Tab 3. Signature, hash, dan file-nya ikut terbawa, jadi tidak perlu upload ulang.
+Setelah selesai, pengguna dapat menekan tombol Verify Now untuk berpindah ke Tab 3. Signature, hash, dan berkas akan ikut terbawa sehingga tidak perlu diunggah ulang.
 
-### Tab 3 - Verify Integrity (sisi penerima)
+### Tab 3 - Verify Integrity (Sisi Penerima)
 
-Di sini kamu memeriksa apakah dokumen yang diterima masih asli. Siapkan tiga hal: dokumennya, signature-nya (bisa tempel manual atau upload file .sig / bundle JSON), dan public key milik si penanda tangan.
+Pada tab ini pengguna memeriksa keaslian dokumen yang diterima. Siapkan tiga hal berikut: dokumen yang akan diperiksa, signature (dapat ditempel manual atau diunggah dalam bentuk berkas .sig maupun bundle JSON), serta public key milik penanda tangan.
 
-Tekan Verify Integrity, hasilnya langsung keluar dalam bentuk banner besar:
+Tekan tombol Verify Integrity, hasilnya akan ditampilkan dalam bentuk banner yang jelas:
 
-- VALID, data terverifikasi. Artinya dokumen asli dan belum diubah.
-- INVALID, ada pelanggaran integritas. Artinya dokumen sudah diubah, atau signature dan kuncinya tidak cocok.
+- VALID, integritas data terverifikasi. Dokumen dinyatakan asli dan belum mengalami perubahan.
+- INVALID, terdeteksi pelanggaran integritas. Dokumen telah diubah, atau signature dan kunci tidak saling cocok.
 
-Di bawahnya ada tabel perbandingan hash yang menunjukkan hash waktu penandatanganan disandingkan dengan hash file yang baru dihitung, per byte. Lengkap dengan ringkasan berapa karakter hex yang berbeda dan status signature-nya.
+Di bawah banner terdapat tabel perbandingan hash yang menyandingkan hash pada saat penandatanganan dengan hash berkas yang dihitung ulang, per byte. Tabel ini dilengkapi ringkasan jumlah karakter hex yang berbeda beserta status signature. Kolom hash referensi juga dapat diisi manual sehingga perbandingan tetap dapat dilakukan tanpa berkas bundle.
 
 ### Tamper Simulator Playground
 
-Ini bagian paling seru buat demo. Tekan Simulate File Tampering, aplikasi akan membalik satu byte di dalam dokumen lalu menghitung ulang hash-nya. Kamu bisa lihat sendiri hash-nya berubah total padahal yang diubah cuma satu byte. Namanya Avalanche Effect.
+Bagian ini digunakan untuk demonstrasi Avalanche Effect. Dengan menekan tombol Simulate File Tampering, aplikasi akan membalik satu byte di dalam dokumen lalu menghitung ulang hash-nya. Pengguna dapat melihat bahwa perubahan sekecil itu menghasilkan nilai hash yang sama sekali berbeda.
 
-Di bawahnya ada angka statistiknya: berapa bit yang berubah dari total bit, biasanya sekitar 50 persen, sesuai sifat SHA-256. Setelah itu tekan Verify Integrity lagi dan banner-nya akan berubah dari VALID jadi INVALID. Untuk balik lagi, tekan Restore Original.
+Pada bagian ini ditampilkan pula statistik perubahannya, yaitu jumlah bit yang berubah dari total bit beserta persentasenya. Pada SHA-256, nilainya berada di kisaran 50 persen. Setelah itu, tekan kembali tombol Verify Integrity untuk melihat hasil verifikasi berubah dari VALID menjadi INVALID. Untuk mengembalikan kondisi semula, tekan tombol Restore Original.
 
 ## Struktur Folder
 
 ```text
 src/
   components/
-    KeyGenerator.tsx       # Tab 1, bikin dan tampilkan kunci
-    DocumentSigner.tsx     # Tab 2, tanda tangani dokumen
+    KeyGenerator.tsx       # Tab 1, pembangkitan dan tampilan kunci
+    DocumentSigner.tsx     # Tab 2, penandatanganan dokumen
     IntegrityVerifier.tsx  # Tab 3, verifikasi dokumen
-    TamperSimulator.tsx    # Fitur perusakan file dan demo Avalanche Effect
+    TamperSimulator.tsx    # Fitur modifikasi berkas dan demonstrasi Avalanche Effect
     HashComparison.tsx     # Tabel perbandingan hash
   lib/
-    rsaCrypto.ts           # Fungsi inti: generate kunci, hash, sign, verify, bundle, tamper
-    fileHelpers.ts         # Baca file, download, parse bundle, copy teks
-    useToast.ts            # Notifikasi kecil di pojok kanan bawah
-  App.tsx                  # Kerangka 3 tab dan state bersama antar tab
+    rsaCrypto.ts           # Fungsi inti: pembangkitan kunci, hash, sign, verify, bundle, tamper
+    fileHelpers.ts         # Pembacaan berkas, unduhan, parsing bundle, salin teks
+    useToast.ts            # Notifikasi kecil di sudut kanan bawah
+  App.tsx                  # Kerangka tiga tab dan state bersama antar tab
   main.tsx
 ```
 
 ## Cara Menjalankan
 
-Butuh Node.js 18 ke atas dan browser modern seperti Chrome, Edge, atau Firefox.
+Diperlukan Node.js versi 18 atau lebih baru serta peramban modern seperti Chrome, Edge, atau Firefox.
 
 ```powershell
-# install sekali saja
+# pemasangan dependensi (cukup dilakukan sekali)
 npm install
 
-# jalanin mode development
+# menjalankan mode development
 npm run dev
 # buka http://localhost:5173
 
-# kalau mau build versi produksi
+# membangun versi produksi
 npm run build
 npm run preview
 # buka http://localhost:4173
 
-# cek lint
+# memeriksa lint
 npm run lint
 ```
 
@@ -109,6 +109,6 @@ npm run lint
 - Tailwind CSS v4 + Lucide Icons
 - Web Crypto API (RSA-PSS dan SHA-256), tanpa backend
 
-## Tampilan
+## Tampilan Antarmuka
 
-Sengaja dibuat hitam putih saja biar bersih. Background putih, teks hitam, garis abu tipis. Tombol utama hitam solid. Status VALID tampil sebagai banner hitam, INVALID tampil sebagai banner putih dengan border hitam tebal. Jadi bedanya tetap jelas tanpa perlu warna.
+Antarmuka menggunakan tema monokrom hitam putih dengan latar putih, teks hitam, dan garis pembatas abu-abu tipis. Tombol utama menggunakan latar hitam solid. Status VALID ditampilkan sebagai banner hitam, sedangkan status INVALID ditampilkan sebagai banner putih dengan garis tepi hitam yang tebal, sehingga keduanya tetap mudah dibedakan tanpa mengandalkan warna.
