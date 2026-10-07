@@ -6,7 +6,7 @@
   }
 
   :root {
-    /* ── Monochrome palette: pure black / white / grays ── */
+    /* Monochrome palette: pure black / white / grays */
     --bg-base: #ffffff;
     --bg-surface: #fafafa;
     --bg-elevated: #f5f5f5;
@@ -66,7 +66,7 @@
   ::-webkit-scrollbar-thumb:hover { background: #a3a3a3; }
 }
 
-/* ── Layout ── */
+/* Layout */
 .app-shell {
   min-height: 100vh;
   display: flex;
@@ -141,7 +141,7 @@
   background: #fff;
 }
 
-/* ── Main Content ── */
+/* Main Content */
 .main-content {
   flex: 1;
   max-width: 1100px;
@@ -150,7 +150,7 @@
   padding: 2rem;
 }
 
-/* ── Tab Navigation ── */
+/* Tab Navigation */
 .tab-nav {
   display: flex;
   gap: 0.5rem;
@@ -201,7 +201,7 @@
   letter-spacing: 0.05em;
 }
 
-/* ── Section Cards ── */
+/* Section Cards */
 .section-card {
   background: #fff;
   border: 1px solid var(--border-subtle);
@@ -228,7 +228,7 @@
   gap: 0.5rem;
 }
 
-/* ── Grid ── */
+/* Grid */
 .two-col-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -242,7 +242,7 @@
   .app-header { padding: 0 1rem; }
 }
 
-/* ── Key Display ── */
+/* Key Display */
 .key-card {
   background: #fff;
   border: 1px solid var(--border-default);
@@ -299,7 +299,7 @@
   overflow-y: auto;
 }
 
-/* ── Buttons ── */
+/* Buttons */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -394,7 +394,7 @@
   border-radius: 6px;
 }
 
-/* ── Form Controls ── */
+/* Form Controls */
 .form-label {
   display: block;
   font-size: 0.78rem;
@@ -447,7 +447,7 @@
   background: #fff;
 }
 
-/* ── Dropzone ── */
+/* Dropzone */
 .dropzone {
   border: 1.5px dashed #a3a3a3;
   border-radius: 10px;
@@ -539,7 +539,7 @@
   color: var(--text-muted);
 }
 
-/* ── Hash Display ── */
+/* Hash Display */
 .hash-display {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.76rem;
@@ -562,7 +562,7 @@
   font-size: 0.8rem;
 }
 
-/* ── Signature Display ── */
+/* Signature Display */
 .sig-display {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.7rem;
@@ -577,7 +577,7 @@
   overflow-y: auto;
 }
 
-/* ── Result Banners (B/W: valid = black fill, invalid = white + thick border) ── */
+/* Result Banners (B/W: valid = black fill, invalid = white + thick border) */
 .result-banner {
   border-radius: 10px;
   padding: 1.2rem 1.4rem;
@@ -643,7 +643,7 @@
 .valid .result-banner-msg { color: #d4d4d4; }
 .invalid .result-banner-msg { color: #52525b; }
 
-/* ── Hash Comparison Table ── */
+/* Hash Comparison Table */
 .hash-compare-table {
   width: 100%;
   border-collapse: collapse;
@@ -690,7 +690,7 @@
   min-width: 200px;
 }
 
-/* ── Tamper Simulator ── */
+/* Tamper Simulator */
 .tamper-zone {
   background: #fafafa;
   border: 1.5px dashed #000;
@@ -718,7 +718,7 @@
   border: 1px solid #000;
 }
 
-/* ── Progress / Spinner ── */
+/* Progress / Spinner */
 .spinner {
   width: 15px;
   height: 15px;
@@ -738,7 +738,7 @@
   to { transform: rotate(360deg); }
 }
 
-/* ── Step indicator ── */
+/* Step indicator */
 .step-row {
   display: flex;
   align-items: center;
@@ -774,7 +774,7 @@
   color: #fff;
 }
 
-/* ── Toast ── */
+/* Toast */
 .toast {
   position: fixed;
   bottom: 1.5rem;
@@ -818,7 +818,7 @@
   color: #000;
 }
 
-/* ── Info row ── */
+/* Info row */
 .info-row {
   display: flex;
   align-items: center;
@@ -830,14 +830,14 @@
 
 .info-row svg { flex-shrink: 0; }
 
-/* ── Divider ── */
+/* Divider */
 .divider {
   height: 1px;
   background: var(--border-subtle);
   margin: 1.25rem 0;
 }
 
-/* ── Footer ── */
+/* Footer */
 .app-footer {
   border-top: 1px solid var(--border-subtle);
   padding: 1rem 2rem;
@@ -847,7 +847,7 @@
   background: #fafafa;
 }
 
-/* ── Glow pulse disabled for B/W theme ── */
+/* Glow pulse disabled for B/W theme */
 @keyframes glowPulse {
   0%, 100% { box-shadow: none; }
   50% { box-shadow: none; }
@@ -866,7 +866,7 @@
   animation: none;
 }
 
-/* ── Avalanche Effect Visual ── */
+/* Avalanche Effect Visual */
 .avalanche-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -907,7 +907,7 @@
 }
 .hex-same { color: #737373; }
 
-/* ── Tooltip ── */
+/* Tooltip */
 [data-tooltip] {
   position: relative;
 }
@@ -935,7 +935,7 @@
   opacity: 1;
 }
 
-/* ── Welcome Hero ── */
+/* Welcome Hero */
 .hero-section {
   text-align: center;
   padding: 2rem 0 2rem;

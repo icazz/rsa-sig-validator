@@ -41,7 +41,7 @@ export interface RsaKeyPair {
 
 const PUBLIC_EXPONENT = 65537n;
 
-// ── Key Generation (manual) ─────────────────────────────────────────────────
+// Key Generation (manual)
 
 /** Bilangan prima kecil untuk trial division sebelum Miller-Rabin. */
 const SMALL_PRIMES: number[] = (() => {
@@ -207,7 +207,7 @@ export async function generateRSAKeyPair(keySize: KeySize = 2048): Promise<RsaKe
   }
 }
 
-// ── SHA-256 manual (FIPS 180-4) ─────────────────────────────────────────────
+// SHA-256 manual (FIPS 180-4)
 
 const SHA256_K = [
   0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
@@ -273,7 +273,7 @@ export async function sha256Hex(data: ArrayBuffer): Promise<string> {
   return arrayBufferToHex(sha256Bytes(new Uint8Array(data)));
 }
 
-// ── Konversi byte/BigInt ────────────────────────────────────────────────────
+// Konversi byte/BigInt
 
 export function bytesToBigInt(bytes: Uint8Array<ArrayBufferLike>): bigint {
   let v = 0n;
@@ -304,7 +304,7 @@ function bigIntToMinimalBytes(x: bigint): Uint8Array {
   return out;
 }
 
-// ── PKCS#1 v1.5 (penandatanganan) ───────────────────────────────────────────
+// PKCS#1 v1.5 (penandatanganan)
 
 /** DigestInfo SHA-256: SEQUENCE OID sha256 + NULL + OCTET STRING hash. */
 const SHA256_DIGESTINFO_PREFIX = new Uint8Array([
@@ -384,7 +384,7 @@ export async function verifySignature(
   }
 }
 
-// ── DER/PEM standar (ditulis manual) ────────────────────────────────────────
+// DER/PEM standar (ditulis manual)
 
 function encodeLength(len: number): Uint8Array<ArrayBufferLike> {
   if (len < 128) return new Uint8Array([len]);
@@ -475,7 +475,7 @@ export async function exportPublicKeyPEM(publicKey: RsaPublicKey): Promise<strin
   return wrapPEM(arrayBufferToBase64(spkiDer(publicKey)), 'PUBLIC KEY');
 }
 
-// ── DER reader (manual) ─────────────────────────────────────────────────────
+// DER reader (manual)
 
 class DerReader {
   private pos = 0;
@@ -613,7 +613,7 @@ export async function importPublicKeyFromPEM(pem: string): Promise<RsaPublicKey>
   }
 }
 
-// ── Utility ─────────────────────────────────────────────────────────────────
+// Utility
 
 export function arrayBufferToBase64(buffer: ArrayBuffer | Uint8Array): string {
   const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
@@ -668,7 +668,7 @@ function unwrapPEM(pem: string, expectedTypes: string[]): string {
   return body;
 }
 
-// ── Format bundle JSON ──────────────────────────────────────────────────────
+// Format bundle JSON
 
 export interface SignatureBundle {
   fileName: string;
@@ -690,7 +690,7 @@ export function createBundle(
   };
 }
 
-// ── Tamper helper (murni, tidak berubah) ────────────────────────────────────
+// Tamper helper (murni, tidak berubah)
 
 /**
  * Membalik satu byte pada posisi ~20% dari awal berkas untuk simulasi perusakan.

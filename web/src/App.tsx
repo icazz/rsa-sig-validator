@@ -102,7 +102,7 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      {/* ── Header ── */}
+      {/* Header */}
       <header className="app-header">
         <div className="header-inner">
           <div className="logo-mark">
@@ -119,19 +119,19 @@ export default function App() {
               ? 'Checking engine…'
               : engine === 'backend'
                 ? 'Python Backend · Manual RSA'
-                : 'Local Engine · Manual RSA'}
+                : 'Local Engine · RSA'}
           </span>
         </div>
       </header>
 
-      {/* ── Main ── */}
+      {/* Main */}
       <main className="main-content">
         {/* Hero */}
         <div className="hero-section">
           <h1 className="hero-title">RSA Digital Signature &amp; Data Integrity Verifier</h1>
           <p className="hero-sub">
             Generate cryptographic key pairs, sign digital documents, verify their authenticity,
-            and simulate file tampering — all entirely in your browser. No data leaves your device.
+            and simulate file tampering, all entirely in your browser. No data leaves your device.
           </p>
           <div className="hero-chips">
             {['2048 / 4096-bit RSA', 'SHA-256 Manual', 'PKCS#1 v1.5 Padding', 'Kode RSA Murni', 'Zero Server', 'Avalanche Effect Demo'].map((c) => (
@@ -190,7 +190,7 @@ export default function App() {
           )}
         </div>
 
-        {/* ── Tab Navigation ── */}
+        {/* Tab Navigation */}
         <nav className="tab-nav" role="tablist">
           {tabs.map((t) => (
             <button
@@ -224,7 +224,7 @@ export default function App() {
           ))}
         </nav>
 
-        {/* ── Tab Panels ── */}
+        {/* Tab Panels */}
         <div role="tabpanel">
           {activeTab === 'keys' && (
             <KeyGenerator
@@ -256,57 +256,16 @@ export default function App() {
             />
           )}
         </div>
-
-        {/* ── How it works (educational) ── */}
-        <section className="section-card" style={{ marginTop: '2rem' }}>
-          <div className="section-title">📚 How RSA Digital Signatures Work</div>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-              gap: '1rem',
-              fontSize: '0.82rem',
-              color: 'var(--text-secondary)',
-              lineHeight: 1.65,
-            }}
-          >
-            <div>
-              <strong style={{ color: 'var(--text-primary)' }}>1. Hash —</strong> the document
-              is hashed with SHA-256 into a fixed 64-char digest. Even 1 flipped bit produces a
-              totally different digest (<em>Avalanche Effect</em>).
-            </div>
-            <div>
-              <strong style={{ color: 'var(--text-primary)' }}>2. Sign —</strong> the hash is
-              signed with the sender&apos;s <em>private key</em> using manual BigInt
-              modular exponentiation (s = m^d mod n, PKCS#1 v1.5 padding),
-              producing a Base64 signature.
-            </div>
-            <div>
-              <strong style={{ color: 'var(--text-primary)' }}>3. Verify —</strong> the receiver
-              re-hashes the document and checks the signature with the sender&apos;s{' '}
-              <em>public key</em>. Match = VALID (authentic); mismatch = INVALID (tampered).
-            </div>
-          </div>
-          <div className="divider" />
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>
-            Note: the original hash <em>cannot</em> be decrypted back out of the
-            signature. That&apos;s why this app compares the{' '}
-            <strong>signing-time hash</strong> (stored in the bundle JSON) against the{' '}
-            <strong>freshly computed hash</strong> — while cryptographic validity itself is proven
-            by the manual <code>verifySignature()</code> routine in <code>rsaCrypto.ts</code>
-            (modular exponentiation + PKCS#1 v1.5 unpadding, all hand-written BigInt code).
-          </div>
-        </section>
       </main>
 
-      {/* ── Footer ── */}
+      {/* Footer */}
       <footer className="app-footer">
         <span>
-          Built with hand-written RSA (BigInt) · PKCS#1 v1.5 · SHA-256 manual · No crypto library · All operations run client-side.
+          Kriptografi A 2026
         </span>
       </footer>
 
-      {/* ── Toast Notifications ── */}
+      {/* Toast Notifications */}
       <div style={{ position: 'fixed', bottom: '1.5rem', right: '1.5rem', zIndex: 9999, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         {toasts.map((t) => (
           <div key={t.id} className={`toast ${t.type}`}>

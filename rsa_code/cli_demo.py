@@ -55,9 +55,7 @@ def count_bit_difference(hash1_hex: str, hash2_hex: str) -> tuple[int, float]:
 def run_full_simulation():
     header("SIMULASI LENGKAP: ALGORITMA RSA & DIGITAL SIGNATURE (TERMINAL)")
 
-    # -------------------------------------------------------------
     # TAHAP 1: PEMBANGKITAN KUNCI RSA
-    # -------------------------------------------------------------
     subheader("TAHAP 1: Pembangkitan Pasangan Kunci RSA-2048 (Manual)")
     print("Membangkitkan 2 bilangan prima acak (p, q) 1024-bit dengan Miller-Rabin test...")
     t0 = time.time()
@@ -75,9 +73,7 @@ def run_full_simulation():
 
     print(f"\nFormat Public Key (SPKI PEM):\n{DIM}{pub_pem.strip()}{RESET}\n")
 
-    # -------------------------------------------------------------
     # TAHAP 2: FUNGSI HASH SHA-256 MANUAL
-    # -------------------------------------------------------------
     subheader("TAHAP 2: Perhitungan Hash Dokumen (SHA-256 Manual)")
     pesan_asli = "Dokumen Kontrak Perjanjian Kerjasama Digital Kriptografi #502724"
     data_bytes = pesan_asli.encode("utf-8")
@@ -87,9 +83,7 @@ def run_full_simulation():
     print(f"Ukuran Data  : {len(data_bytes)} byte")
     print(f"SHA-256 Hash : {GREEN}{hash_asli}{RESET}")
 
-    # -------------------------------------------------------------
     # TAHAP 3: SIGNING (PEMBUATAN DIGITAL SIGNATURE)
-    # -------------------------------------------------------------
     subheader("TAHAP 3: Penandatanganan Dokumen (Digital Signature PKCS#1 v1.5)")
     print("Langkah: Hash -> DigestInfo + Padding PKCS#1 v1.5 -> Enkripsi dengan Private Key (s = m^d mod n)")
     t0 = time.time()
@@ -100,9 +94,7 @@ def run_full_simulation():
     print(f"{GREEN}[OK] Signature berhasil dibuat dalam {durasi_sign:.4f} detik!{RESET}")
     print(f"Digital Signature (Base64):\n{BOLD}{CYAN}{signature[:64]}...\n...{signature[-64:]}{RESET}")
 
-    # -------------------------------------------------------------
     # TAHAP 4: VERIFIKASI DOKUMEN ASLI (SISI PENERIMA)
-    # -------------------------------------------------------------
     subheader("TAHAP 4: Verifikasi Integritas Dokumen Asli")
     print("Penerima menerima: (1) Dokumen, (2) Signature, (3) Public Key penandatangan.")
     print("Langkah: Dekripsi signature dengan Public Key (m' = s^e mod n) -> Cocokkan hash.")
@@ -116,9 +108,7 @@ def run_full_simulation():
     else:
         print(f"\nStatus Verifikasi: {BOLD}{RED}[ INVALID ]{RESET}")
 
-    # -------------------------------------------------------------
     # TAHAP 5: SIMULASI PEMALSUAN DATA (TAMPERING & AVALANCHE EFFECT)
-    # -------------------------------------------------------------
     subheader("TAHAP 5: Simulasi Pemalsuan / Modifikasi Data (Tampering Attack)")
     print("Skenario: Penyerang mengubah 1 karakter pada dokumen saat transmisi:")
     
@@ -143,9 +133,7 @@ def run_full_simulation():
     else:
         print(f"Status Verifikasi: {RED}[ LOLOS (GAGAL UJI) ]{RESET}")
 
-    # -------------------------------------------------------------
     # TAHAP 6: SIMULASI KUNCI PUBLIK YANG SALAH (WRONG KEY ATTACK)
-    # -------------------------------------------------------------
     subheader("TAHAP 6: Simulasi Verifikasi Menggunakan Public Key Orang Lain")
     print("Skenario: Dokumen asli diverifikasi menggunakan public key milik orang lain:")
     other_key = rsa_manual.generate_keypair(2048)
