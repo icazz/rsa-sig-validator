@@ -1,6 +1,6 @@
 /**
  * apiClient.ts — Klien HTTP untuk backend Python (FastAPI).
- * Seluruh komputasi kriptografi dikerjakan oleh `backend/rsa_manual.py`
+ * Seluruh komputasi kriptografi dikerjakan oleh `rsa_code/rsa_manual.py`
  * (implementasi RSA manual murni); modul ini hanya mengantar data.
  */
 

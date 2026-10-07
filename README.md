@@ -24,8 +24,8 @@ Proyek ini disusun untuk memenuhi tugas mata kuliah Kriptografi mengenai fungsi 
 | Aritmetika       | Manual: Miller-Rabin, perpangkatan modular, invers modular, CRT |
 | Bentuk signature | String Base64                                           |
 | Format kunci     | PEM standar (public key SPKI, private key PKCS#8, dapat dibuka OpenSSL) |
-| Engine utama     | `backend/rsa_manual.py` (Python, tanpa pustaka kripto)  |
-| Engine cadangan  | `src/lib/rsaCrypto.ts` (TypeScript, implementasi manual yang sama) |
+| Engine utama     | `rsa_code/rsa_manual.py` (Python, tanpa pustaka kripto)  |
+| Engine cadangan  | `web/src/lib/rsaCrypto.ts` (TypeScript, implementasi manual yang sama) |
 
 Aplikasi ini membandingkan hash pada saat penandatanganan (yang tersimpan di berkas bundle JSON atau diteruskan dari Tab 2) dengan hash berkas yang dihitung ulang pada saat verifikasi. Keabsahan kriptografis dibuktikan melalui operasi RSA penuh: eksponensiasi modular dengan kunci publik beserta pemeriksaan struktur padding PKCS#1 v1.5, seluruhnya oleh fungsi `verifySignature` yang ditulis manual.
 
@@ -66,70 +66,131 @@ Bagian ini digunakan untuk demonstrasi Avalanche Effect. Dengan menekan tombol S
 
 Pada bagian ini ditampilkan pula statistik perubahannya, yaitu jumlah bit yang berubah dari total bit beserta persentasenya. Pada SHA-256, nilainya berada di kisaran 50 persen. Setelah itu, tekan kembali tombol Verify Integrity untuk melihat hasil verifikasi berubah dari VALID menjadi INVALID. Untuk mengembalikan kondisi semula, tekan tombol Restore Original.
 
-## Struktur Folder
+## Struktur Repositori
+
+Proyek ini dipisahkan menjadi dua bagian utama:
 
 ```text
-src/
-  components/
-    KeyGenerator.tsx       # Tab 1, pembangkitan dan tampilan kunci
-    DocumentSigner.tsx     # Tab 2, penandatanganan dokumen
-    IntegrityVerifier.tsx  # Tab 3, verifikasi dokumen
-    TamperSimulator.tsx    # Fitur modifikasi berkas dan demonstrasi Avalanche Effect
-    HashComparison.tsx     # Tabel perbandingan hash
-  lib/
-    rsaCrypto.ts           # Mesin lokal: pembangkitan kunci, hash, sign, verify, bundle, tamper (manual)
-    apiClient.ts           # Klien HTTP menuju backend Python
-    cryptoService.ts       # Penentu mesin aktif (backend bila tersedia, bila tidak mesin lokal)
-    fileHelpers.ts         # Pembacaan berkas, unduhan, parsing bundle, salin teks
-    useToast.ts            # Notifikasi kecil di sudut kanan bawah
-  App.tsx                  # Kerangka tiga tab dan state bersama antar tab
-  main.tsx
-backend/
-  rsa_manual.py            # Implementasi RSA manual murni (prima, SHA-256, PKCS#1 v1.5, DER/PEM)
-  app.py                   # API FastAPI: /health, /generate, /hash, /sign, /verify
-  requirements.txt         # Dependensi HTTP server (bukan dependensi kripto)
-  test_manual.py           # Uji mandiri: vektor hash, roundtrip, tamper
-  test_http.py             # Uji endpoint HTTP (memerlukan server berjalan)
+rsa-sig-validator/
+├── rsa_code/                 # [1] IMPLEMENTASI UTAMA TUGAS RSA (PYTHON MURNI)
+│   ├── rsa_manual.py         # Algoritma RSA murni (keygen prima Miller-Rabin, SHA-256 manual, sign, verify)
+│   ├── cli_demo.py           # Program simulasi terminal interaktif & otomatis (tanpa web)
+│   ├── test_manual.py        # Pengujian mandiri via CLI: vektor uji, roundtrip, tamper
+│   ├── app.py                # Lapisan HTTP FastAPI (jembatan API jika web ingin memanggil kode Python)
+│   ├── test_http.py          # Pengujian endpoint HTTP
+│   └── requirements.txt      # Dependensi FastAPI & Uvicorn
+│
+├── web/                      # [2] APLIKASI WEB VISUAL PENDUKUNG (FRONTEND)
+│   ├── src/
+│   │   ├── components/       # Komponen UI: KeyGenerator, DocumentSigner, IntegrityVerifier, TamperSimulator
+│   │   ├── lib/
+│   │   │   ├── rsaCrypto.ts  # Mesin lokal TypeScript (alternatif offline)
+│   │   │   ├── apiClient.ts  # Klien HTTP menuju rsa_code Python
+│   │   │   └── ...
+│   │   └── App.tsx
+│   ├── package.json
+│   ├── vite.config.ts
+│   └── ...
+│
+├── .gitignore
+└── README.md
 ```
 
-## Cara Menjalankan
+---
 
-Diperlukan Node.js versi 18 atau lebih baru, Python 3.10 atau lebih baru, serta peramban modern seperti Chrome, Edge, atau Firefox.
+## 1. Panduan Simulasi Implementasi Code by Terminal (Tanpa Web)
 
+Implementasi RSA ini dapat dijalankan dan disimulasikan sepenuhnya melalui terminal/CLI tanpa menyentuh web. Ini sangat berguna saat presentasi di hadapan dosen/asisten untuk membuktikan keaslian dan cara kerja algoritma secara murni.
+
+### Cara A: Simulasi Otomatis Step-by-Step (Rekomendasi untuk Demo)
+Menjalankan seluruh alur kriptografi dari awal hingga akhir secara berurutan dengan penjelasan interaktif di terminal:
 ```powershell
-# --- Terminal 1: backend Python ---
-cd backend
-pip install -r requirements.txt
-uvicorn app:app --host 127.0.0.1 --port 8000
+python rsa_code/cli_demo.py --auto
+```
+**Alur yang disimulasikan:**
+1. **Tahap 1 (Keygen):** Pembangkitan bilangan prima $p, q$ dengan Miller-Rabin, perhitungan modulus $n$, eksponen publik $e=65537$, dan eksponen privat $d$. Menampilkan kunci dalam format PEM standar.
+2. **Tahap 2 (Hash):** Menghitung nilai hash SHA-256 dokumen asli menggunakan implementasi fungsi hash manual dari nol.
+3. **Tahap 3 (Signing):** Membuat *Digital Signature* berbasis PKCS#1 v1.5 dengan enkripsi eksponensiasi modular ($s = m^d \pmod n$).
+4. **Tahap 4 (Verifikasi Dokumen Asli):** Mendekripsi signature dengan public key ($m' = s^e \pmod n$) dan mencocokkan hash. Status: **VALID**.
+5. **Tahap 5 (Tampering & Avalanche Effect):** Memanipulasi 1 byte/karakter pada dokumen, menghitung perubahan bit hash (~50% bit berubah drastis), lalu memverifikasi ulang. Status: **INVALID (Modifikasi Terdeteksi)**.
+6. **Tahap 6 (Wrong Key Attack):** Menguji verifikasi dokumen menggunakan public key milik pihak lain. Status: **INVALID (Kunci Ditolak)**.
 
-# --- Terminal 2: frontend web ---
-npm install   # cukup dilakukan sekali
+---
+
+### Cara B: Menu Interaktif Terminal (Bisa Input Teks Bebas)
+Menyediakan antarmuka menu di terminal untuk mencoba fitur satu per satu sesuai keinginan:
+```powershell
+python rsa_code/cli_demo.py
+```
+**Menu yang tersedia:**
+- `[1]` Pembangkitan Pasangan Kunci RSA (pilih 2048-bit atau 4096-bit)
+- `[2]` Hitung Hash Dokumen / Teks Bebas (SHA-256 manual)
+- `[3]` Tanda Tangani Dokumen Teks dengan Private Key
+- `[4]` Verifikasi Tanda Tangan dengan Public Key
+- `[5]` Simulasi Avalanche Effect & Modifikasi Dokumen
+- `[6]` Jalankan Full Automated Simulation
+- `[0]` Keluar
+
+---
+
+### Cara C: Pengujian Logika Matematis & Vektor Uji (Unit Test)
+Untuk memastikan seluruh rumus matematika modular, prima, dan vektor uji FIPS 180-4 berfungsi dengan benar:
+```powershell
+python rsa_code/test_manual.py
+```
+Jika berhasil, terminal akan menampilkan:
+```text
+SHA-256 vectors OK
+Math OK
+keygen-2048: 0.xxs
+PEM export OK
+Sign/verify roundtrip OK
+Tamper + wrong-key rejection OK
+ALL PYTHON TESTS PASSED
+```
+
+---
+
+## 2. Panduan Menjalankan Web Visual
+
+Aplikasi web di folder `web/` berfungsi sebagai antarmuka pendukung visual untuk mempermudah demonstrasi grafis (upload file drag-and-drop, export `.pem`/`.sig`, simulasi tamper interaktif, dan tabel hex comparison).
+
+### Opsi 1: Menjalankan Web Secara Mandiri (Local Engine / Offline)
+Aplikasi web memiliki implementasi mesin RSA mandiri berbasis TypeScript yang identik dan interoperabel. Anda bisa menjalankannya langsung tanpa perlu menyalakan server Python:
+```powershell
+# 1. Pindah ke folder web
+cd web
+
+# 2. Pasang dependensi (hanya perlu sekali)
+npm install
+
+# 3. Jalankan server pengembang
 npm run dev
-# buka http://localhost:5173
 ```
+Setelah itu, buka tautan yang muncul di terminal (biasanya **`http://localhost:5173`**).
 
-Indikator mesin kriptografi yang sedang dipakai tampil pada badge di kanan atas halaman: "Python Backend" apabila backend terhubung, atau "Local Engine" apabila berjalan dengan mesin lokal. Alamat backend dapat diubah melalui variabel `VITE_API_URL` (bawaan: `http://localhost:8000`, lihat `.env.example`).
+---
 
-Perintah tambahan:
+### Opsi 2: Menjalankan Web Terhubung ke Backend Python (`rsa_code`)
+Jika Anda ingin antarmuka web memanggil algoritma Python dari folder `rsa_code/`:
 
-```powershell
-# membangun versi produksi
-npm run build
-npm run preview
-# buka http://localhost:4173
+1. **Terminal 1 (Jalankan Server Python):**
+   ```powershell
+   cd rsa_code
+   pip install -r requirements.txt
+   uvicorn app:app --host 127.0.0.1 --port 8000
+   ```
+2. **Terminal 2 (Jalankan Frontend Web):**
+   ```powershell
+   cd web
+   npm run dev
+   ```
+3. Buka browser di `http://localhost:5173`. Badge status di pojok kanan atas halaman web akan otomatis mendeteksi server dan menampilkan:
+   > **`Python Backend · Manual RSA`**
 
-# memeriksa lint
-npm run lint
-
-# menguji backend (dari folder utama)
-python backend/test_manual.py
-# uji endpoint HTTP (server harus berjalan dahulu)
-python backend/test_http.py
-```
+---
 
 ## Tech Stack
 
-- React 19 + TypeScript + Vite (antarmuka)
-- Tailwind CSS v4 + Lucide Icons
-- Python + FastAPI (API backend; hanya lapisan HTTP, bukan kriptografi)
-- Kriptografi manual dari nol di kedua sisi (Python dan TypeScript): prima Miller-Rabin, SHA-256, PKCS#1 v1.5, DER/PEM — tanpa pustaka kripto
+- **rsa_code**: Python 3.10+, FastAPI (hanya HTTP layer), tanpa pustaka kriptografi eksternal (semua matematika prima Miller-Rabin, padding PKCS#1 v1.5, dan SHA-256 murni manual).
+- **web**: React 19 + TypeScript + Vite + Tailwind CSS v4 + Lucide Icons.

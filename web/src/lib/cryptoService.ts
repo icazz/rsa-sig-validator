@@ -1,7 +1,7 @@
 /**
  * cryptoService.ts — Satu pintu untuk seluruh operasi kriptografi di UI.
  *
- * Jalur utama: backend Python (`backend/rsa_manual.py`, implementasi RSA
+ * Jalur utama: backend Python (`rsa_code/rsa_manual.py`, implementasi RSA
  * manual murni) melalui `apiClient`. Apabila backend tidak dapat dihubungi,
  * otomatis beralih ke mesin lokal (`rsaCrypto.ts`, implementasi manual yang
  * sama dalam TypeScript) sehingga aplikasi tetap berfungsi. Kedua mesin

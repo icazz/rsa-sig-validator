@@ -1,8 +1,10 @@
 """Uji mandiri backend: vektor SHA-256, roundtrip RSA, tamper, wrong-key."""
 import json
 import sys
-
-sys.path.insert(0, "backend")
+import os
+_HERE = os.path.dirname(os.path.abspath(__file__))
+if _HERE not in sys.path:
+    sys.path.insert(0, _HERE)
 
 import rsa_manual
 
@@ -48,7 +50,8 @@ assert rsa_manual.verify_signature(other_pub, sig, data) is False
 print("Tamper + wrong-key rejection OK", flush=True)
 
 # 5. Tulis bundle untuk uji interop silang dengan frontend (TS)
-with open("cross_from_py.json", "w", encoding="utf-8") as f:
+out_path = os.path.join(_HERE, "cross_from_py.json")
+with open(out_path, "w", encoding="utf-8") as f:
     json.dump({"public_key": pub_pem, "signature": sig,
                "data_hex": data.hex(), "sha256": rsa_manual.sha256_hex(data)}, f)
 print("ALL PYTHON TESTS PASSED", flush=True)
