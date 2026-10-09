@@ -113,6 +113,7 @@ def generate_prime(bits: int, rounds: int) -> int:
 
 def generate_keypair(key_size: int = 2048) -> dict:
     """Membangkitkan pasangan kunci RSA manual. Mengembalikan dict bilangan bulat."""
+    # Algoritma Pencarian Bilangan Prima (Miller-Rabin Primality Test)
     if key_size not in (2048, 4096):
         raise ValueError("Ukuran kunci harus 2048 atau 4096.")
     prime_bits = key_size // 2
@@ -125,11 +126,13 @@ def generate_keypair(key_size: int = 2048) -> dict:
         n = p * q
         if n.bit_length() != key_size:
             continue
+        # Totient Euler
         phi = (p - 1) * (q - 1)
         e = PUBLIC_EXPONENT
         import math
         if math.gcd(e, phi) != 1:
             continue
+        # Algoritma Extended Euclidean
         d = modinv(e, phi)
         return {
             "n": n, "e": e, "d": d, "p": p, "q": q,
@@ -215,6 +218,7 @@ def sign_data(private_key: dict, data: bytes) -> str:
     m = int.from_bytes(em, "big")
     if m >= private_key["n"]:
         raise ValueError("Nilai padding melebihi modulus.")
+    # Enkripsi RSA = m^d mod n
     # CRT (cepat): s1 = m^dp mod p, s2 = m^dq mod q
     s1 = pow(m, private_key["dp"], private_key["p"])
     s2 = pow(m, private_key["dq"], private_key["q"])
@@ -233,6 +237,7 @@ def verify_signature(public_key: dict, signature_b64: str, data: bytes) -> bool:
         s = int.from_bytes(sig, "big")
         if s >= public_key["n"]:
             return False
+        # m = s^e mod n
         em = pow(s, public_key["e"], public_key["n"]).to_bytes(k, "big")
         if len(em) < 2 or em[0] != 0x00 or em[1] != 0x01:
             return False

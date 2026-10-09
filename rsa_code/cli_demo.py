@@ -68,9 +68,10 @@ def run_full_simulation():
     print(f" - Public exp (e) : {key['e']}")
     print(f" - Private exp (d): {str(key['d'])[:30]}...{str(key['d'])[-30:]}")
 
-    priv_pem = rsa_manual.export_private_pem(key)
-    pub_pem = rsa_manual.export_public_pem(key)
+    priv_pem = rsa_manual.export_private_pem(key) #PKCS#8 Private Key
+    pub_pem = rsa_manual.export_public_pem(key) #SPKI PEM
 
+    # base64  
     print(f"\nFormat Public Key (SPKI PEM):\n{DIM}{pub_pem.strip()}{RESET}\n")
 
     # TAHAP 2: FUNGSI HASH SHA-256 MANUAL
