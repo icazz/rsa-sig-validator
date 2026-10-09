@@ -239,11 +239,14 @@ def verify_signature(public_key: dict, signature_b64: str, data: bytes) -> bool:
             return False
         # m = s^e mod n
         em = pow(s, public_key["e"], public_key["n"]).to_bytes(k, "big")
+        # bongkar paddingnya
         if len(em) < 2 or em[0] != 0x00 or em[1] != 0x01:
             return False
         i = 2
+        # cek header, kalau salah buang jauh
         while i < len(em) and em[i] == 0xFF:
             i += 1
+        # buang padding
         if i - 2 < 8 or i >= len(em) or em[i] != 0x00:
             return False
         t = em[i + 1:]
