@@ -97,3 +97,29 @@ Membuktikan fungsi Nirpenyangkalan (*Non-Repudiation*).
 Di dalam kode ada fungsi `export_private_pem` dan `export_public_pem`.
 Fungsi ini bukan algoritma enkripsi keamanan, melainkan **Algoritma Serialisasi / Encoding** berbasis ASN.1 DER dan Base64 (untuk PKCS#8 & SPKI). 
 Gunanya murni agar kunci matematika yang panjang bisa menjadi huruf abjad agar mudah *di-copy-paste* ke sistem lain atau ke Web. Letak fungsi ini ada di `rsa_manual.py` bagian terbawah.
+
+---
+
+## ALASAN PEMILIHAN ALGORITMA (Untuk Sesi Tanya Jawab / Sidang)
+Berikut adalah argumen akademis mengapa rumus atau algoritma tertentu dipilih pada masing-masing tahapan di atas.
+
+### 1. Kenapa Pakai Miller-Rabin dan Extended Euclidean?
+- **Kenapa Miller-Rabin Primality Test?**
+  Mengecek keprimaan angka raksasa (1024-bit) dengan pembagian konvensional akan memakan waktu ribuan tahun. Miller-Rabin adalah algoritma probabilistik yang mampu memastikan keprimaan angka raksasa hanya dalam sekian milidetik dengan tingkat keakuratan nyaris 100%.
+- **Kenapa Extended Euclidean Algorithm?**
+  Satu-satunya cara matematis yang paling efisien dan diakui secara global untuk mencari *invers modular* (guna mendapatkan Kunci Privat $d$ dari rumus $e \times d \equiv 1 \pmod \phi$).
+
+### 2. Kenapa Harus Di-Hash? Dan Kenapa Pakai SHA-256?
+- **Kenapa butuh Hash? (Kenapa tidak dienkripsi langsung?)**
+  RSA punya batasan ukuran. Kunci RSA 2048-bit maksimal hanya bisa menyandikan ~256 byte data. Fungsi Hash memecahkan masalah ini dengan memampatkan dokumen berukuran apa pun (misal: 50 MB) menjadi ukuran tetap (32-byte).
+- **Kenapa SHA-256?**
+  Karena terbukti *Collision-Resistant* (kebal bentrokan). Mustahil ada 2 dokumen berbeda yang bisa menghasilkan Hash yang sama.
+
+### 3. Kenapa Pakai Padding PKCS#1 v1.5 dan CRT?
+- **Kenapa Padding PKCS#1 v1.5?**
+  Mengenkripsi Hash mentah (*Textbook RSA*) sangat tidak aman karena rentan manipulasi matematis. Padding memberi keacakan struktural (deretan `0xFF`) dan Header spesifik agar data memenuhi 2048-bit dan kebal dari peretasan matematis.
+- **Kenapa Chinese Remainder Theorem (CRT)?**
+  Memangkatkan angka ratusan digit dengan Kunci Privat $d$ sangat membebani komputer. CRT memecah perhitungan tersebut menjadi skala yang lebih kecil (memakai variabel $p$ dan $q$), sehingga proses *signing* berjalan **4 kali lebih cepat**.
+
+### 4. Kenapa Membandingkan Hash? (Avalanche Effect)
+- Hash berfungsi sebagai pelindung integritas sempurna. Sifat mutlak SHA-256 yang disebut **Avalanche Effect** memastikan bahwa memanipulasi sekecil 1 karakter koma pada dokumen akan mengubah rata-rata 50% struktur Hash-nya. Sehingga, segala bentuk modifikasi (*tampering*) oleh *hacker* saat dokumen dikirim akan otomatis menggagalkan proses verifikasi.
